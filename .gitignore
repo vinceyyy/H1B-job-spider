@@ -1,5 +1,9 @@
-# Sensitive data
+# data
 *.json
+*.csv
+
+# mac
+.DS_Store
 
 # data
 data
