@@ -1,0 +1,39 @@
+# regular
+(do|does|will)? (not|unable to|not able to) (sponsor|support|offer|provide|eligible|require)(ing)?( for)? (the |new |immigration )?(J1 waiver or )?(H1B|sponsorships?|visas?)
+not in a position to support H1B
+without sponsorship
+not considering the sponsorship
+No (H1B|sponsorships?)
+Sponsorship (is)? not available
+is not J1 or H1B visa eligible
+is not an H1B visa sponsor
+(will)? not (able to )?sponsor
+not provide employment visa sponsorship
+without needing sponsorship
+No visa sponsorship
+does not offer H1B 
+
+# no opt
+No OPT
+
+# W2 only
+Looking for candidates who can work on W2
+
+# specific
+Only individuals with US work authorization can apply (US Citizen, H1B, GC, H4 EAD)
+Candidates can be USC, GCH, Perm Resident or H1B
+must be a US citizen or have (a )?H1B
+Need H1B / H4 EAD / GC / USC Visa Holders only
+Work Authorization H1B, H4EAD, GC EAD, GC, USC
+NO (H1B, OPT Candidates)
+not eligible for any form of employment authorization programs
+cannot consider H1B
+not a job position for H1B
+not considering OPT/CPT candidates
+DOES NOT TRANSFER OR SPONSOR H1B
+unable to work with candidates on H1B
+will not be any H1B Visa sponsorship
+Not a H1B (or J1 )?(Visa )?opportunity
+not considering candidates who require H1B
+# this one is weird
+not entertaining contractors or candidates in need of work authorization (H1B) sponsorship
