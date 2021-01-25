@@ -25,6 +25,7 @@ class Page:
             "q=0.9,image/webp,*/*;q=0.8",
             "accept-encoding": "gzip, deflate, sdch, br",
             "accept-language": "en-GB,en-US;q=0.8,en;q=0.6",
+            "referer": "https://www.indeed.com",
             "upgrade-insecure-requests": "1",
             "user-agent": random.choice(USER_AGENT_LIST),
             "Cache-Control": "no-cache",
@@ -48,6 +49,13 @@ class JobList(Page):
     Args:
         Page (str): the first page of page list
     """
+
+    def good_query(self) -> bool:
+        bad_signal = self.tree.cssselect("div.bad_query")
+        if len(bad_signal) == 0:
+            return True
+        else:
+            return False
 
     def total_num_of_pages(self) -> int:
         """Calculates the number of pages of job listings to be scraped.
@@ -89,7 +97,7 @@ class JobList(Page):
         Returns:
             str: url of next page
         """
-        print(self.url)
+        # print(self.url)
         if "start=" not in self.url:
             url = self.url + "&" + f"start={self.max_on_page}"
         else:
@@ -100,7 +108,7 @@ class JobList(Page):
                 rf"\g<1>{next_offset}\g<2>",
                 self.url,
             )
-            print("next page: ", url)
+            # print("next page: ", url)
         return url
 
     def get_job_index(self):
@@ -117,6 +125,11 @@ class JobList(Page):
         ]
         urls = [
             "https://www.indeed.com" + url if (url.startswith("/")) else url
+            for url in urls
+        ]
+        # some links directs to company's page without param vjs=3
+        urls = [
+            url + "&vjs=3" if "/rc/clk?jk=" in url and "vjs=3" not in url else url
             for url in urls
         ]
         titles = [
@@ -171,7 +184,7 @@ if __name__ == "__main__":
     print(pagelist.nextpage())
 
     while True:
-        for url in pagelist.get_job_urls()[:3]:
+        for url in pagelist.get_job_index()[:3]:
             job = JobDetail(url)
             print("================================================")
             print(job.title())
