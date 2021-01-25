@@ -52,11 +52,11 @@ def positive(series: pd.Series):
 
 
 # %%
-df = pd.read_csv("../data/output.csv")
-pd.options.display.max_colwidth = 400
-visa = visa_sentences(df["description"]).drop_duplicates()
-print(len(visa_sentences(positive(df["description"])).drop_duplicates()))
-visa_sentences(positive(df["description"])).drop_duplicates().iloc[120:]
+# df = pd.read_csv("../data/output.csv")
+# pd.options.display.max_colwidth = 400
+# visa = visa_sentences(df["description"]).drop_duplicates()
+# print(len(visa_sentences(positive(df["description"])).drop_duplicates()))
+# visa_sentences(positive(df["description"])).drop_duplicates().iloc[120:]
 
 
 # %%
