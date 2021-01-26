@@ -18,7 +18,7 @@ class Manager:
             ValueError: unsupported website
         """
         self.KEYWORDS = keywords
-        self.df = pd.DataFrame(
+        self.jobs = pd.DataFrame(
             columns=["title", "company", "location", "description", "url"]
         )
         if website == "indeed":
@@ -30,8 +30,6 @@ class Manager:
 
         self.joblists = JobList(self.url)
         print(f"Start querying {self.KEYWORDS} at {self.joblists.url}")
-        self.pbar_jobdetail = None
-        self.pbar_jobindex = None
 
     def any_result(self):
         if self.joblists.good_query() == True:
@@ -90,6 +88,7 @@ class Manager:
                 f"index_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
             )
             self.index["error"] = 0
+        self.pbar_jobindex.close()
 
     def get_job_detail(self, url: str):
         """retrive single job detail
@@ -105,10 +104,10 @@ class Manager:
             "description": job.description(),
             "url": url,
         }
-        self.df = self.df.append(output, ignore_index=True)
+        self.jobs = self.jobs.append(output, ignore_index=True)
 
     def unfinished(self, retry):
-        unfinished_df = self.index[~self.index["url"].isin(self.df["url"].to_list())]
+        unfinished_df = self.index[~self.index["url"].isin(self.jobs["url"].to_list())]
         unfinished_df = unfinished_df[unfinished_df["error"] < retry]
         return unfinished_df
 
@@ -123,7 +122,7 @@ class Manager:
             time.sleep(random.uniform(1, 3))
             try:
                 self.get_job_detail(row["url"])
-                # print(f"Job #{i+1} retrived. Total {len(self.df)} jobs retrived.")
+                # print(f"Job #{i+1} retrived. Total {len(self.jobs)} jobs retrived.")
                 self.pbar_jobdetail.update(1)
             except:
                 self.index.loc[row["index"], "error"] += 1
@@ -143,17 +142,18 @@ class Manager:
             self.trying(self.unfinished(self.retry))
             time.sleep(random.uniform(2, 5))
             print("One round finished.")
+        self.pbar_jobdetail.close()
 
     def save_raw(self):
-        self.df.to_csv(f"data/raw_{self.KEYWORDS.replace(' ', '_')}.csv", index=False)
+        self.jobs.to_csv(f"data/raw_{self.KEYWORDS.replace(' ', '_')}.csv", index=False)
 
     def save_neutral(self):
-        self.df[~visa_related(self.df["description"])].to_csv(
+        self.jobs[~visa_related(self.jobs["description"])].to_csv(
             f"data/visa_neutral_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
         )
 
     def save_friendly(self):
-        visa = self.df[visa_related(self.df["description"])]
+        visa = self.jobs[visa_related(self.jobs["description"])]
         visa[~is_negative(visa["description"])].to_csv(
             f"data/visa_friendly_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
         )
