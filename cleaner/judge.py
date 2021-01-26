@@ -20,7 +20,18 @@ def visa_sentences(series: pd.Series) -> pd.Series:
     return visa_sentences
 
 
-def negative_bool(series: pd.Series) -> pd.Series:
+def visa_related(series: pd.Series) -> pd.Series:
+    """check if job is visa related
+
+    Returns:
+        series (pd.Series): boolean series, True == related
+    """
+    visas = ["h-?1b", "visas?", "opt", "cpt", "sponsor", "sponsorships?"]
+    related = series.str.contains("|".join(visas), flags=re.IGNORECASE)
+    return related
+
+
+def is_negative(series: pd.Series) -> pd.Series:
     """check if OPT/H1B acceptance is negative
 
     Returns:
@@ -41,16 +52,6 @@ def negative_bool(series: pd.Series) -> pd.Series:
     return negative
 
 
-def negative(series: pd.Series):
-    negative = series[negative_bool(series)]
-    return negative
-
-
-def positive(series: pd.Series):
-    positive = series[~negative_bool(series)]
-    return positive
-
-
 # %%
 # df = pd.read_csv("../data/output.csv")
 # pd.options.display.max_colwidth = 400
@@ -60,4 +61,10 @@ def positive(series: pd.Series):
 
 
 # %%
+# (_, _, filenames) = next(os.walk("../data"))
+# filenames = [filename for filename in filenames if filename.startswith("visa_friendly")]
+# for filename in filenames:
+#     df = pd.read_csv(f"../data/{filename}")
+#     df[visa_related(df['description'])]
+#     break
 # %%
