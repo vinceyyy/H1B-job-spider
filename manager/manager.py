@@ -30,7 +30,8 @@ class Manager:
 
         self.joblists = JobList(self.url)
         print(f"Start querying {self.KEYWORDS} at {self.joblists.url}")
-        self.pbar = None
+        self.pbar_jobdetail = None
+        self.pbar_jobindex = None
 
     def any_result(self):
         if self.joblists.good_query() == True:
@@ -46,23 +47,27 @@ class Manager:
         try:
             index = pd.read_csv(f"index_{self.KEYWORDS.replace(' ', '_')}.csv")
             print("Index exists. Load index.")
+            self.pbar_jobindex = tqdm(
+                total=len(index), desc=f"Index: {self.KEYWORDS.capitalize()}"
+            )
             self.index = index
             self.index["error"] = 0
         except:
             print("No index found. Initializing new index.")
             index = pd.DataFrame()
-            print(
-                f"Found {self.joblists.total_num_of_pages()} pages"
-            )  # it is ok if this num is wrong
+            max_num = self.joblists.total_num_of_pages()
+            self.pbar_jobindex = tqdm(
+                total=max_num, desc=f"Index: {self.KEYWORDS.capitalize()}"
+            )
+            print(f"Found {max_num} pages")  # it is ok if this num is wrong
 
             # in case the nagination system is broken
             signal = self.joblists.current_num_of_pages()
 
             while self.joblists.rest_num_of_pages() >= 0:
-                print(
-                    f"Current at page #{self.joblists.current_num_of_pages()}: {self.joblists.url}"
-                )
+                # print(f"Current at page #{self.joblists.current_num_of_pages()}: {self.joblists.url}")
                 index = index.append(self.joblists.get_job_index(), ignore_index=True)
+                self.pbar_jobindex.update(1)
                 time.sleep(random.uniform(0.5, 1))
                 if self.joblists.rest_num_of_pages() == 0:
                     print("last page achieved")
@@ -78,7 +83,7 @@ class Manager:
                         break
                     signal = self.joblists.current_num_of_pages()
 
-                    print(f"remaining pages: {self.joblists.rest_num_of_pages()}")
+                    # print(f"remaining pages: {self.joblists.rest_num_of_pages()}")
             print(f"Total {len(index)} job urls found.")
             self.index = index.reset_index(drop=True)
             self.index.to_csv(
@@ -114,12 +119,12 @@ class Manager:
         Args:
             df (pd.DataFrame): df of unfinished jobs
         """
-        for i, row in df.reset_index().iterrows():
+        for _, row in df.reset_index().iterrows():
             time.sleep(random.uniform(1, 3))
             try:
                 self.get_job_detail(row["url"])
                 # print(f"Job #{i+1} retrived. Total {len(self.df)} jobs retrived.")
-                self.pbar.update(1)
+                self.pbar_jobdetail.update(1)
             except:
                 self.index.loc[row["index"], "error"] += 1
                 if self.index.loc[row["index"], "error"] >= self.retry:
@@ -130,7 +135,9 @@ class Manager:
 
     def keep_trying(self, retry=10):
         """if there are unfinished jobs, keep trying"""
-        self.pbar = tqdm(total=len(self.index))
+        self.pbar_jobdetail = tqdm(
+            total=len(self.index), desc=f"Detail: {self.KEYWORDS.capitalize()}"
+        )
         self.retry = retry
         while len(self.unfinished(self.retry)) > 0:
             self.trying(self.unfinished(self.retry))
