@@ -1,8 +1,9 @@
 import pandas as pd
 from scraper.indeed import JobList, JobDetail
-from cleaner.judge import negative_bool
+from cleaner.judge import is_negative, visa_related
 import time
 import random
+from tqdm import tqdm
 
 
 class Manager:
@@ -29,6 +30,7 @@ class Manager:
 
         self.joblists = JobList(self.url)
         print(f"Start querying {self.KEYWORDS} at {self.joblists.url}")
+        self.pbar = None
 
     def any_result(self):
         if self.joblists.good_query() == True:
@@ -102,44 +104,50 @@ class Manager:
 
     def unfinished(self, retry):
         unfinished_df = self.index[~self.index["url"].isin(self.df["url"].to_list())]
-        unfinished_df = unfinished_df[unfinished_df["error"] <= retry]
+        unfinished_df = unfinished_df[unfinished_df["error"] < retry]
         return unfinished_df
 
     def trying(self, df):
-        """try to retrive all unfinished jobs
+        """try to retrive all unfinished jobs (error < retry).
+        If failed to retrive, error += 1
 
         Args:
             df (pd.DataFrame): df of unfinished jobs
         """
-        for index, row in df.reset_index().iterrows():
+        for i, row in df.reset_index().iterrows():
             time.sleep(random.uniform(1, 3))
             try:
                 self.get_job_detail(row["url"])
-                print(f"Job #{index+1} retrived. Total {len(self.df)} jobs retrived.")
+                # print(f"Job #{i+1} retrived. Total {len(self.df)} jobs retrived.")
+                self.pbar.update(1)
             except:
                 self.index.loc[row["index"], "error"] += 1
-                print(
-                    f"#{self.index.loc[row['index'], 'error']} retry to retrive job detail failed."
-                )
-                if self.index.loc[row["index"], "error"] == self.retry:
-                    print(f"MAXIUM RETRY ACHIEVED: self.index.loc[row['index'], 'url']")
-                continue
+                if self.index.loc[row["index"], "error"] >= self.retry:
+                    print(
+                        f"MAXIUM RETRY ACHIEVED: {self.index.loc[row['index'], 'url']}"
+                    )
+                # print(f"\n#{self.index.loc[row['index'], 'error']} retry to retrive job detail failed.")
 
     def keep_trying(self, retry=10):
         """if there are unfinished jobs, keep trying"""
+        self.pbar = tqdm(total=len(self.index))
         self.retry = retry
         while len(self.unfinished(self.retry)) > 0:
             self.trying(self.unfinished(self.retry))
             time.sleep(random.uniform(2, 5))
             print("One round finished.")
 
-    def save(self):
-        self.df[["url", "title"]].to_csv(
-            f"data/raw_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
+    def save_raw(self):
+        self.df.to_csv(f"data/raw_{self.KEYWORDS.replace(' ', '_')}.csv", index=False)
+
+    def save_neutral(self):
+        self.df[~visa_related(self.df["description"])].to_csv(
+            f"data/visa_neutral_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
         )
 
     def save_friendly(self):
-        self.df[~negative_bool(self.df["description"])][["url", "title"]].to_csv(
+        visa = self.df[visa_related(self.df["description"])]
+        visa[~is_negative(visa["description"])].to_csv(
             f"data/visa_friendly_{self.KEYWORDS.replace(' ', '_')}.csv", index=False
         )
 
@@ -148,7 +156,7 @@ class Manager:
             error_log = pd.read_csv("error.csv")
         except:
             error_log = pd.DataFrame()
-        new = self.index[self.index["error"] == self.retry][["url", "title"]].to_dict()
+        new = self.index[self.index["error"] >= self.retry][["url", "title"]].to_dict()
         new["keyword"] = self.KEYWORDS
         error_log = error_log.append(new, ignore_index=True)
         error_log.to_csv("error.csv", index=False)
