@@ -29,7 +29,7 @@ class Manager:
             raise ValueError("Only support indeed")
 
         self.joblists = JobList(self.url)
-        print(f"Start querying {self.KEYWORDS} at {self.joblists.url}")
+        print(f"Start querying {self.KEYWORDS}.capitalize() at {self.joblists.url}")
 
     def any_result(self):
         if self.joblists.good_query() == True:

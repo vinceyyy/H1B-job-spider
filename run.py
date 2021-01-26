@@ -17,7 +17,7 @@ for keyword in [keyword for keyword in KEYWORDS_LIST]:
 
     indeed.log_error()
     print("===========================")
-    print("FINISHED.")
+    # print("FINISHED.")
     print(f"{len(indeed.jobs)} jobs retrived.")
     indeed.save_raw()
     indeed.save_neutral()
@@ -25,3 +25,4 @@ for keyword in [keyword for keyword in KEYWORDS_LIST]:
     print("============")
     print(f"{keyword} FILE SAVED.")
     print("============")
+print("ALL TASKS FINISHED.")
