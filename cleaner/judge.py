@@ -26,7 +26,12 @@ def visa_related(series: pd.Series) -> pd.Series:
     Returns:
         series (pd.Series): boolean series, True == related
     """
-    visas = ["h-?1b", "visas?", "opt", "cpt", "sponsor", "sponsorships?"]
+    visas = [
+        "h-?1b",
+        "[^\w]visas?[^\w]",
+        "[^\w]opt[^\w]",
+        "[^\w]cpt[^\w]",
+    ]
     related = series.str.contains("|".join(visas), flags=re.IGNORECASE)
     return related
 
@@ -50,21 +55,3 @@ def is_negative(series: pd.Series) -> pd.Series:
                 )
     negative = series.str.contains("|".join(NEGATIVE_LIST), flags=re.IGNORECASE)
     return negative
-
-
-# %%
-# df = pd.read_csv("../data/output.csv")
-# pd.options.display.max_colwidth = 400
-# visa = visa_sentences(df["description"]).drop_duplicates()
-# print(len(visa_sentences(positive(df["description"])).drop_duplicates()))
-# visa_sentences(positive(df["description"])).drop_duplicates().iloc[120:]
-
-
-# %%
-# (_, _, filenames) = next(os.walk("../data"))
-# filenames = [filename for filename in filenames if filename.startswith("visa_friendly")]
-# for filename in filenames:
-#     df = pd.read_csv(f"../data/{filename}")
-#     df[visa_related(df['description'])]
-#     break
-# %%
